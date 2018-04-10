@@ -33,13 +33,15 @@ public class Game1 : Game
     private const int BORDER_WIDTH = 10;
     private const float TICKS_PER_SECOND = 30;
     //Colors
-    private Color MAP_COLOR = Color.SandyBrown;
+    private Color MAP_COLOR = Color.AliceBlue;
 
     public Game1()
     {
         _graphics = new GraphicsDeviceManager(this);
         _graphics.PreferredBackBufferHeight = 900;
         _graphics.PreferredBackBufferWidth = 1600;
+
+        IsMouseVisible = true;
 
         Content.RootDirectory = "Content";
     }
@@ -117,7 +119,10 @@ public class Game1 : Game
             }
         }
 
-        SpawnTestObject();
+        for (int i = 0; i < 50; i++)
+        {
+            SpawnTestObject();
+        }
     }
 
     /// <summary>
@@ -146,7 +151,7 @@ public class Game1 : Game
         {
             _inputState.Update();
             _player.HandleInput(_inputState);
-            Global.Camera.HandleInput(_inputState, PlayerIndex.One);
+            Global.Camera.HandleInput(_inputState, PlayerIndex.One, ref _gameData);
 
             _tickSeconds = 1 / _currentTicksPerSecond;
 
@@ -167,6 +172,12 @@ public class Game1 : Game
             {
                 UpdateOffTick(gameTime);
             }
+        }
+
+        //This must be after movement caluclations occur for the creatures otherwise the camera will glitch back and forth
+        if (_gameData.Focus != null)
+        {
+            Global.Camera.CenterOn(_gameData.Focus.Position);
         }
 
         base.Update(gameTime);
@@ -192,9 +203,9 @@ public class Game1 : Game
 
         //DRAW IN THE WORLD
         _spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend, null, null, null, null, Global.Camera.TranslationMatrix);
-        //Sample Draws to test Panning/Zooming. Notice that choosing a color on the Draw Results in the pixel color changing. This works because putting a tint onto white results in that color 
-        _spriteBatch.Draw(_whitePixel, new Rectangle(Global.Camera.ViewportWidth / 2, Global.Camera.ViewportHeight / 2, 10, 10), Color.Black);
-        _spriteBatch.Draw(_whitePixel, new Rectangle(-100, 100, 10, 10), Color.Red);
+        ////Sample Draws to test Panning/Zooming. Notice that choosing a color on the Draw Results in the pixel color changing. This works because putting a tint onto white results in that color 
+        //_spriteBatch.Draw(_whitePixel, new Rectangle(Global.Camera.ViewportWidth / 2, Global.Camera.ViewportHeight / 2, 10, 10), Color.Black);
+        //_spriteBatch.Draw(_whitePixel, new Rectangle(-100, 100, 10, 10), Color.Red);
 
         for (int i = 0; i < _gameData.Sprites.Count; i++)
         {
@@ -313,37 +324,37 @@ public class Game1 : Game
                     }
                 }
 
-                //Collision
-                foreach (Point p in _gameData.Sprites[i].GridPositions)
-                {
-                    for (int k = (_gameData.MapGridData[p.X, p.Y].Sprites.Count - 1); k >= 0; k--)
-                    {
-                        if (_gameData.Sprites[i] != _gameData.Sprites[k] && _gameData.Sprites[i].Bounds.Intersects(_gameData.MapGridData[p.X, p.Y].Sprites[k].Bounds))
-                        {
-                            //Change rotation on object collision just for a sample
-                            if (_gameData.Sprites[i].Position.X - (_gameData.Sprites[i].Texture.Width / 2) <= 0 || _gameData.Sprites[i].Position.X + (_gameData.Sprites[i].Texture.Width / 2) >= _gameData.Settings.WorldSize)
-                            {
-                                if (_gameData.Sprites[i].Direction.X >= 0 && _gameData.Sprites[i].Direction.Y >= 0 ||
-                                    _gameData.Sprites[i].Direction.X >= 0 && _gameData.Sprites[i].Direction.Y < 0 ||
-                                    _gameData.Sprites[i].Direction.X < 0 && _gameData.Sprites[i].Direction.Y >= 0 ||
-                                    _gameData.Sprites[i].Direction.X < 0 && _gameData.Sprites[i].Direction.Y < 0)
-                                {
-                                    _gameData.Sprites[i].Rotation = (((float)Math.PI * 2) - _gameData.Sprites[i].Rotation);
-                                }
-                            }
-                            if (_gameData.Sprites[i].Position.Y - (_gameData.Sprites[i].Texture.Height / 2) <= 0 || _gameData.Sprites[i].Position.Y + (_gameData.Sprites[i].Texture.Height / 2) >= _gameData.Settings.WorldSize)
-                            {
-                                if (_gameData.Sprites[i].Direction.X >= 0 && _gameData.Sprites[i].Direction.Y >= 0 ||
-                                    _gameData.Sprites[i].Direction.X >= 0 && _gameData.Sprites[i].Direction.Y < 0 ||
-                                    _gameData.Sprites[i].Direction.X < 0 && _gameData.Sprites[i].Direction.Y >= 0 ||
-                                    _gameData.Sprites[i].Direction.X < 0 && _gameData.Sprites[i].Direction.Y < 0)
-                                {
-                                    _gameData.Sprites[i].Rotation = (((float)Math.PI) - _gameData.Sprites[i].Rotation);
-                                }
-                            }
-                        }
-                    }
-                }
+                ////Collision
+                //foreach (Point p in _gameData.Sprites[i].GridPositions)
+                //{
+                //    for (int k = (_gameData.MapGridData[p.X, p.Y].Sprites.Count - 1); k >= 0; k--)
+                //    {
+                //        if (_gameData.Sprites[i] != _gameData.Sprites[k] && _gameData.Sprites[i].Bounds.Intersects(_gameData.MapGridData[p.X, p.Y].Sprites[k].Bounds))
+                //        {
+                //            //Change rotation on object collision just for a sample
+                //            if (_gameData.Sprites[i].Position.X - (_gameData.Sprites[i].Texture.Width / 2) <= 0 || _gameData.Sprites[i].Position.X + (_gameData.Sprites[i].Texture.Width / 2) >= _gameData.Settings.WorldSize)
+                //            {
+                //                if (_gameData.Sprites[i].Direction.X >= 0 && _gameData.Sprites[i].Direction.Y >= 0 ||
+                //                    _gameData.Sprites[i].Direction.X >= 0 && _gameData.Sprites[i].Direction.Y < 0 ||
+                //                    _gameData.Sprites[i].Direction.X < 0 && _gameData.Sprites[i].Direction.Y >= 0 ||
+                //                    _gameData.Sprites[i].Direction.X < 0 && _gameData.Sprites[i].Direction.Y < 0)
+                //                {
+                //                    _gameData.Sprites[i].Rotation = (((float)Math.PI * 2) - _gameData.Sprites[i].Rotation);
+                //                }
+                //            }
+                //            if (_gameData.Sprites[i].Position.Y - (_gameData.Sprites[i].Texture.Height / 2) <= 0 || _gameData.Sprites[i].Position.Y + (_gameData.Sprites[i].Texture.Height / 2) >= _gameData.Settings.WorldSize)
+                //            {
+                //                if (_gameData.Sprites[i].Direction.X >= 0 && _gameData.Sprites[i].Direction.Y >= 0 ||
+                //                    _gameData.Sprites[i].Direction.X >= 0 && _gameData.Sprites[i].Direction.Y < 0 ||
+                //                    _gameData.Sprites[i].Direction.X < 0 && _gameData.Sprites[i].Direction.Y >= 0 ||
+                //                    _gameData.Sprites[i].Direction.X < 0 && _gameData.Sprites[i].Direction.Y < 0)
+                //                {
+                //                    _gameData.Sprites[i].Rotation = (((float)Math.PI) - _gameData.Sprites[i].Rotation);
+                //                }
+                //            }
+                //        }
+                //    }
+                //}
 
                 UpdateMoveSprite(gameTime, i);
             }

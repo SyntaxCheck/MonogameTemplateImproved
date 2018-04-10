@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -144,8 +145,7 @@ public class Camera
     }
 
     // Move the camera's position based on input
-    public void HandleInput(InputState inputState,
-       PlayerIndex? controllingPlayer)
+    public void HandleInput(InputState inputState, PlayerIndex? controllingPlayer, ref GameData gameData)
     {
         Vector2 cameraMovement = Vector2.Zero;
         float cameraMovementAmount = 0.1f / Zoom; //Adjust Movement based on Zoom
@@ -181,6 +181,42 @@ public class Camera
         if (cameraMovement != Vector2.Zero)
         {
             cameraMovement.Normalize();
+        }
+
+        MouseState mouseState;
+        if (inputState.IsNewLeftMouseClick(out mouseState))
+        {
+            Vector2 worldPosition = Vector2.Transform(new Vector2(mouseState.Position.X, mouseState.Position.Y), Matrix.Invert(Global.Camera.TranslationMatrix));
+
+            bool found = false;
+
+            if (!found)
+            {
+                for (int i = 0; i < gameData.Sprites.Count; i++)
+                {
+                    if (gameData.Sprites[i].IsMovable())
+                    {
+                        //Help with clicking by expanding the radius
+                        if (gameData.Sprites[i].Position.X - (gameData.Sprites[i].Texture.Width / 1.5) < worldPosition.X &&
+                            gameData.Sprites[i].Position.X + (gameData.Sprites[i].Texture.Width / 1.5) > worldPosition.X &&
+                            gameData.Sprites[i].Position.Y - (gameData.Sprites[i].Texture.Height / 1.5) < worldPosition.Y &&
+                            gameData.Sprites[i].Position.Y + (gameData.Sprites[i].Texture.Height / 1.5) > worldPosition.Y)
+                        {
+                            //Set the gameData focus to follow
+                            gameData.Focus = gameData.Sprites[i];
+                            gameData.FocusIndex = i;
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            //If we have focus on a creature remove that focus if we click anywhere other than on a creature
+            if (gameData.Focus != null && !found)
+            {
+                gameData.Focus = null;
+            }
         }
 
         // scale our movement to move 25 pixels per second
