@@ -12,21 +12,28 @@ public class Camera
     public Camera()
     {
         Zoom = 0.5f;
+        CameraChange = true;
+        SetTranslationMatrix();
     }
 
     // Centered Position of the Camera in pixels.
     public Vector2 Position { get; private set; }
     // Current Zoom level with 1.0f being standard
     public float Zoom { get; private set; }
-    private float ZoomMin = 0.25f;
-    private float ZoomMax = 10.0f;
+    private float ZoomMin = 0.17f;
+    private float ZoomMax = 2.0f;
     // Current Rotation amount with 0.0f being standard orientation
     public float Rotation { get; private set; }
+    public Rectangle VisibleArea { get; set; }
+    public bool CameraChange { get; set; }
 
     // Height and width of the viewport window which we need to adjust
     // any time the player resizes the game window.
     public int ViewportWidth { get; set; }
     public int ViewportHeight { get; set; }
+
+    //TranslationMatrix 
+    public Matrix TranslationMatrix { get; set; }
 
     // Center of the Viewport which does not account for scale
     public Vector2 ViewportCenter
@@ -41,16 +48,15 @@ public class Camera
     // the map and our objects. since the camera coordinates are where
     // the camera is, we offset everything by the negative of that to simulate
     // a camera moving. We also cast to integers to avoid filtering artifacts.
-    public Matrix TranslationMatrix
+    public void SetTranslationMatrix()
     {
-        get
-        {
-            return Matrix.CreateTranslation(-(int)Position.X,
-               -(int)Position.Y, 0) *
-               Matrix.CreateRotationZ(Rotation) *
-               Matrix.CreateScale(new Vector3(Zoom, Zoom, 1)) *
-               Matrix.CreateTranslation(new Vector3(ViewportCenter, 0));
-        }
+        MouseState mouseState = Mouse.GetState();
+
+        TranslationMatrix = Matrix.CreateTranslation(-(int)Position.X,
+            -(int)Position.Y, 0) *
+            Matrix.CreateRotationZ(Rotation) *
+            Matrix.CreateScale(new Vector3(Zoom, Zoom, 1)) *
+            Matrix.CreateTranslation(new Vector3(ViewportCenter, 0));
     }
 
     // Call this method with negative values to zoom out
@@ -63,11 +69,11 @@ public class Camera
         float zoomAmount = 0f;
         if (amount > 0)
         {
-            zoomAmount = (ZoomMax - Zoom) / 4;
+            zoomAmount = (ZoomMax - Zoom) / 5;
         }
         else
         {
-            zoomAmount = (Zoom - ZoomMin) / -4;
+            zoomAmount = (Zoom - ZoomMin) / -5;
         }
         if (zoomAmount > 0.1f)
             zoomAmount = 0.1f;
@@ -83,23 +89,31 @@ public class Camera
         {
             Zoom = ZoomMax;
         }
+
+        VisibleArea = ViewportWorldBoundry();
+        CameraChange = true;
+        SetTranslationMatrix();
     }
 
     // Move the camera in an X and Y amount based on the cameraMovement param.
     // if clampToMap is true the camera will try not to pan outside of the
     // bounds of the map.
-    public void MoveCamera(Vector2 cameraMovement, bool clampToMap = false)
+    public void MoveCamera(int worldSize, Vector2 cameraMovement, bool clampToMap = false)
     {
         Vector2 newPosition = Position + cameraMovement;
 
         if (clampToMap)
         {
-            Position = MapClampedPosition(newPosition);
+            Position = MapClampedPosition(worldSize, newPosition);
         }
         else
         {
             Position = newPosition;
         }
+
+        VisibleArea = ViewportWorldBoundry();
+        CameraChange = true;
+        SetTranslationMatrix();
     }
 
     public Rectangle ViewportWorldBoundry()
@@ -118,18 +132,44 @@ public class Camera
     public void CenterOn(Vector2 position)
     {
         Position = position;
+
+        VisibleArea = ViewportWorldBoundry();
+        CameraChange = true;
     }
 
+    // Center the camera on a specific cell in the map
+    //public void CenterOn(Cell cell)
+    //{
+    //    Position = CenteredPosition(cell, true);
+    //}
+
+    //private Vector2 CenteredPosition(Cell cell, bool clampToMap = false)
+    //{
+    //    var cameraPosition = new Vector2(cell.X * Global.SpriteWidth,
+    //       cell.Y * Global.SpriteHeight);
+    //    var cameraCenteredOnTilePosition =
+    //       new Vector2(cameraPosition.X + Global.SpriteWidth / 2,
+    //           cameraPosition.Y + Global.SpriteHeight / 2);
+    //    if (clampToMap)
+    //    {
+    //        return MapClampedPosition(cameraCenteredOnTilePosition);
+    //    }
+
+    //    return cameraCenteredOnTilePosition;
+    //}
+
     // Clamp the camera so it never leaves the visible area of the map.
-    private Vector2 MapClampedPosition(Vector2 position)
+    private Vector2 MapClampedPosition(int worldSize, Vector2 position)
     {
+        int clampOverrage = 1000;
+
         var cameraMax = new Vector2(
-            Global.WORLD_SIZE - (ViewportWidth / Zoom / 2) + 100,
-            Global.WORLD_SIZE - (ViewportHeight / Zoom / 2) + 100
+            worldSize - (ViewportWidth / Zoom / 2) + clampOverrage,
+            worldSize - (ViewportHeight / Zoom / 2) + clampOverrage
         );
 
         Vector2 clamped = new Vector2();
-        clamped = Vector2.Clamp(position, new Vector2((ViewportWidth / Zoom / 2) - 100, (ViewportHeight / Zoom / 2) - 100), cameraMax);
+        clamped = Vector2.Clamp(position, new Vector2((ViewportWidth / Zoom / 2) - clampOverrage, (ViewportHeight / Zoom / 2) - clampOverrage), cameraMax);
         return clamped;
     }
 
@@ -145,10 +185,10 @@ public class Camera
     }
 
     // Move the camera's position based on input
-    public void HandleInput(InputState inputState, PlayerIndex? controllingPlayer, ref GameData gameData)
+    public void HandleInput(InputState inputState, PlayerIndex? controllingPlayer, GameTime gameTime, ref GameData gameData)
     {
         Vector2 cameraMovement = Vector2.Zero;
-        float cameraMovementAmount = 0.1f / Zoom; //Adjust Movement based on Zoom
+        float cameraMovementAmount = 0.1f / Zoom;
 
         if (inputState.IsScrollLeft(controllingPlayer))
         {
@@ -175,14 +215,6 @@ public class Camera
             AdjustZoom(-0.25f);
         }
 
-        // When using a controller, to match the thumbstick behavior,
-        // we need to normalize non-zero vectors in case the user
-        // is pressing a diagonal direction.
-        if (cameraMovement != Vector2.Zero)
-        {
-            cameraMovement.Normalize();
-        }
-
         MouseState mouseState;
         if (inputState.IsNewLeftMouseClick(out mouseState))
         {
@@ -194,20 +226,17 @@ public class Camera
             {
                 for (int i = 0; i < gameData.Sprites.Count; i++)
                 {
-                    if (gameData.Sprites[i].IsMovable())
+                    //If the object is not an egg help with clicking by expanding the radius
+                    if (gameData.Sprites[i].Position.X - (gameData.Sprites[i].Texture.Width / 1.5) < worldPosition.X &&
+                        gameData.Sprites[i].Position.X + (gameData.Sprites[i].Texture.Width / 1.5) > worldPosition.X &&
+                        gameData.Sprites[i].Position.Y - (gameData.Sprites[i].Texture.Height / 1.5) < worldPosition.Y &&
+                        gameData.Sprites[i].Position.Y + (gameData.Sprites[i].Texture.Height / 1.5) > worldPosition.Y)
                     {
-                        //Help with clicking by expanding the radius
-                        if (gameData.Sprites[i].Position.X - (gameData.Sprites[i].Texture.Width / 1.5) < worldPosition.X &&
-                            gameData.Sprites[i].Position.X + (gameData.Sprites[i].Texture.Width / 1.5) > worldPosition.X &&
-                            gameData.Sprites[i].Position.Y - (gameData.Sprites[i].Texture.Height / 1.5) < worldPosition.Y &&
-                            gameData.Sprites[i].Position.Y + (gameData.Sprites[i].Texture.Height / 1.5) > worldPosition.Y)
-                        {
-                            //Set the gameData focus to follow
-                            gameData.Focus = gameData.Sprites[i];
-                            gameData.FocusIndex = i;
-                            found = true;
-                            break;
-                        }
+                        //Set the gameData focus to follow
+                        gameData.Focus = gameData.Sprites[i];
+                        gameData.FocusIndex = i;
+                        found = true;
+                        break;
                     }
                 }
             }
@@ -219,9 +248,17 @@ public class Camera
             }
         }
 
-        // scale our movement to move 25 pixels per second
-        cameraMovement *= 25f;
+        // When using a controller, to match the thumbstick behavior,
+        // we need to normalize non-zero vectors in case the user
+        // is pressing a diagonal direction.
+        if (cameraMovement != Vector2.Zero)
+        {
+            cameraMovement.Normalize();
 
-        MoveCamera(cameraMovement, false);
+            // scale our movement to move based on gametime
+            cameraMovement *= (2000f * (float)gameTime.ElapsedGameTime.TotalSeconds);
+
+            MoveCamera(gameData.Settings.WorldSize, cameraMovement, true);
+        }
     }
 }

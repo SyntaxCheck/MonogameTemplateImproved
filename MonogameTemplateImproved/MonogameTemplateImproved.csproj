@@ -9,8 +9,8 @@
     <ProjectGuid>{76481EC0-135F-4CB9-9F4E-4FFA24DB56EB}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>TestSS</RootNamespace>
-    <AssemblyName>TestSS</AssemblyName>
+    <RootNamespace>MGTemplate</RootNamespace>
+    <AssemblyName>MGTemplate</AssemblyName>
     <FileAlignment>512</FileAlignment>
     <MonoGamePlatform>Windows</MonoGamePlatform>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
@@ -55,6 +55,7 @@
     <Compile Include="Game1.cs" />
     <Compile Include="Framework\GridData.cs" />
     <Compile Include="GameData\Borders.cs" />
+    <Compile Include="GameData\Building.cs" />
     <Compile Include="GameData\Car.cs" />
     <Compile Include="GameData\SpriteBase.cs" />
     <Compile Include="GameData\Truck.cs" />

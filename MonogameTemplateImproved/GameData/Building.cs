@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-public class Van : SpriteBase
+public class Building : SpriteBase
 {
-    public override bool IsMovable { get; set; } = true;
+    public override bool IsMovable { get; set; }
 
-    public Van()
+    public Building()
     {
     }
 }

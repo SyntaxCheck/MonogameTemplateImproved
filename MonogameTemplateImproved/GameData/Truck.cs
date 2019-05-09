@@ -6,16 +6,9 @@ using System.Threading.Tasks;
 
 public class Truck : SpriteBase
 {
+    public override bool IsMovable { get; set; } = true;
+
     public Truck()
     {
-    }
-
-    public override SpriteType GetSpriteType()
-    {
-        return SpriteType.Truck;
-    }
-    public override bool IsMovable()
-    {
-        return true;
     }
 }

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace TestSS
+namespace MGTemplate
 {
 #if WINDOWS || LINUX
     /// <summary>

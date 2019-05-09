@@ -122,6 +122,56 @@ public static class CollisionDetection
     {
         return Math.Acos(Dot(b, c) / (Magnitude(b) * Magnitude(c)));
     }
+    public static void OffsetOnCollision(Rectangle rec1, Rectangle rec2, ref float horizontalOffset, ref float verticalOffset)
+    {
+        if (rec1.Right > rec2.Left &&
+            ((rec1.Bottom >= rec2.Top && rec1.Bottom <= rec2.Bottom) ||
+            (rec1.Top >= rec2.Bottom && rec1.Top <= rec2.Top)
+            ))
+        {
+            horizontalOffset = rec2.Left - rec1.Right;
+        }
+        else if (rec1.Left < rec2.Right)
+        {
+            horizontalOffset = rec2.Right - rec1.Left;
+        }
+
+        if (rec1.Bottom > rec2.Top)
+        {
+            verticalOffset = rec2.Top - rec1.Bottom;
+        }
+        else if (rec1.Top < rec2.Bottom)
+        {
+            verticalOffset = rec2.Bottom - rec1.Top;
+        }
+    }
+    public static Vector2 GetIntersectionDepth(Rectangle rectA, Rectangle rectB)
+    {
+        // Calculate half sizes.
+        float halfWidthA = rectA.Width / 2.0f;
+        float halfHeightA = rectA.Height / 2.0f;
+        float halfWidthB = rectB.Width / 2.0f;
+        float halfHeightB = rectB.Height / 2.0f;
+
+        // Calculate centers.
+        Vector2 centerA = new Vector2(rectA.Left + halfWidthA, rectA.Top + halfHeightA);
+        Vector2 centerB = new Vector2(rectB.Left + halfWidthB, rectB.Top + halfHeightB);
+
+        // Calculate current and minimum-non-intersecting distances between centers.
+        float distanceX = centerA.X - centerB.X;
+        float distanceY = centerA.Y - centerB.Y;
+        float minDistanceX = halfWidthA + halfWidthB;
+        float minDistanceY = halfHeightA + halfHeightB;
+
+        // If we are not intersecting at all, return (0, 0).
+        if (Math.Abs(distanceX) >= minDistanceX || Math.Abs(distanceY) >= minDistanceY)
+            return Vector2.Zero;
+
+        // Calculate and return intersection depths.
+        float depthX = distanceX > 0 ? minDistanceX - distanceX : -minDistanceX - distanceX;
+        float depthY = distanceY > 0 ? minDistanceY - distanceY : -minDistanceY - distanceY;
+        return new Vector2(depthX, depthY);
+    }
 
     public static Vector2? FindCollisionPoint(Vector2 target_pos, Vector2 target_vel, Vector2 interceptor_pos, double interceptor_speed)
     {
