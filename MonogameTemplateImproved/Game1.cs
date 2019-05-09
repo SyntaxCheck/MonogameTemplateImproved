@@ -20,7 +20,6 @@ public class Game1 : Game
     private GameData _gameData;
     private Borders _borders;
     private Random _rand;
-    private Texture2D _whitePixel;
     private int _frames;
     private double _elapsedSeconds;
     private int _fps;
@@ -84,16 +83,30 @@ public class Game1 : Game
         _diagFont = Content.Load<SpriteFont>("DiagnosticsFont");
 
         //Load in a simple white pixel
-        _whitePixel = new Texture2D(_graphics.GraphicsDevice, 1, 1);
+        Texture2D whitePixel = new Texture2D(_graphics.GraphicsDevice, 1, 1);
         Color[] color = new Color[1];
         color[0] = Color.White;
-        _whitePixel.SetData(color);
+        whitePixel.SetData(color);
+
+        //_gameData.Textures.Add(new TextureContainer() { Texture = _whitePixel, Name = TextureName.WhitePixel }); //Adding texture when using the Container as a list
+        _gameData.Textures.WhitePixel = whitePixel;
+        _gameData.Textures.ParticleCollisionWestTopSpriteSheet = Content.Load<Texture2D>(@"Animations\ImpactWestTop");
+        _gameData.Textures.ParticleCollisionWestBottomSpriteSheet = Content.Load<Texture2D>(@"Animations\ImpactWestBottom");
+        _gameData.Textures.ParticleCollisionEastTopSpriteSheet = Content.Load<Texture2D>(@"Animations\ImpactEastTop");
+        _gameData.Textures.ParticleCollisionEastBottomSpriteSheet = Content.Load<Texture2D>(@"Animations\ImpactEastBottom");
+        _gameData.Textures.ParticleCollisionNorthLeftSpriteSheet = Content.Load<Texture2D>(@"Animations\ImpactNorthLeft");
+        _gameData.Textures.ParticleCollisionNorthRightSpriteSheet = Content.Load<Texture2D>(@"Animations\ImpactNorthRight");
+        _gameData.Textures.ParticleCollisionSouthLeftSpriteSheet = Content.Load<Texture2D>(@"Animations\ImpactSouthLeft");
+        _gameData.Textures.ParticleCollisionSouthRightSpriteSheet = Content.Load<Texture2D>(@"Animations\ImpactSouthRight");
+        _gameData.Textures.ClickExplosionSpriteSheet = Content.Load<Texture2D>(@"Animations\ClickExplosion1");
 
         _rand = new Random();
+        _gameData.CollisionAnimFactory = new CollisionParticleAnimationFactory(_gameData.Textures.ParticleCollisionEastBottomSpriteSheet, _gameData.Textures.ParticleCollisionEastTopSpriteSheet, _gameData.Textures.ParticleCollisionWestBottomSpriteSheet, _gameData.Textures.ParticleCollisionWestTopSpriteSheet, _gameData.Textures.ParticleCollisionNorthLeftSpriteSheet, _gameData.Textures.ParticleCollisionNorthRightSpriteSheet, _gameData.Textures.ParticleCollisionSouthLeftSpriteSheet, _gameData.Textures.ParticleCollisionSouthRightSpriteSheet, 4, 40);
+        _gameData.OnClickAnimFactory = new OnClickAnimationFactory(_gameData.Textures.ClickExplosionSpriteSheet, 4, 30);
 
         //Generate the Map
         _borders = new Borders();
-        _borders.Texture = _whitePixel;
+        _borders.Texture = whitePixel;
         _borders.LeftWall = new Vector2(0, 0);
         _borders.RightWall = new Vector2(_gameData.Settings.WorldSize, 0);
         _borders.TopWall = new Vector2(0, 0);
@@ -159,7 +172,7 @@ public class Game1 : Game
         else
         {
             _inputState.Update();
-            _player.HandleInput(_inputState);
+            _player.HandleInput(_inputState, ref _gameData);
             Global.Camera.HandleInput(_inputState, PlayerIndex.One, gameTime, ref _gameData);
 
             _elapsedSecondsSinceTick += gameTime.ElapsedGameTime.TotalSeconds;
@@ -237,17 +250,10 @@ public class Game1 : Game
 
         UpdateTickSprites(gameTime);
     }
-    private void UpdateTickSprites(GameTime gameTime)
-    {
-        for (int i = _gameData.Sprites.Count - 1; i >= 0; i--)
-        {
-            UpdateMoveSprite(gameTime, i);
-        }
-    }
     private void UpdateOffTick(GameTime gameTime)
     {
-        //Collisions And Movement
-        UpdateOffTickHandleCollisionsAndMovement(gameTime);
+        UpdateOffTickHandleCollisionsAndMovement(gameTime); //Collisions And Movement
+        UpdateAnimations(gameTime); //Run animation
 
         //Every second interval processing only when it is not a TICK. When things only need to be updated once every X seconds
         if (_elapsedTicksSinceSecondProcessing >= TICKS_PER_SECOND * 5)
@@ -258,6 +264,15 @@ public class Game1 : Game
     private void UpdateOffTickInterval(GameTime gameTime)
     {
         _elapsedTicksSinceSecondProcessing = 0;
+        UpdateOffTickIntervalCleanupAnimations(gameTime);
+    }
+
+    private void UpdateTickSprites(GameTime gameTime)
+    {
+        for (int i = _gameData.Sprites.Count - 1; i >= 0; i--)
+        {
+            UpdateMoveSprite(gameTime, i);
+        }
     }
     private void UpdateOffTickHandleCollisionsAndMovement(GameTime gameTime)
     {
@@ -299,6 +314,10 @@ public class Game1 : Game
                         if (!_gameData.MapGridData[p.X, p.Y].Sprites[k].IsMovable && _gameData.Sprites[i].Bounds.Intersects(_gameData.MapGridData[p.X, p.Y].Sprites[k].Bounds))
                         {
                             Vector2 offset = CollisionDetection.GetIntersectionDepth(_gameData.Sprites[i].Bounds, _gameData.MapGridData[p.X, p.Y].Sprites[k].Bounds);
+
+                            //Add a animation for the collision before we adjust the rotation only if the object is on screen
+                            if(_gameData.MapGridData[p.X, p.Y].Sprites[k].DrawObject)
+                                _gameData.Animations.AddRange(_gameData.CollisionAnimFactory.Build(_gameData.Sprites[i].Bounds, _gameData.MapGridData[p.X, p.Y].Sprites[k].Bounds, offset, _gameData.Sprites[i].Direction, _gameData.Sprites[i].Scale, Color.Gray));
 
                             if (Math.Abs(offset.X) < Math.Abs(offset.Y))
                             {
@@ -424,6 +443,13 @@ public class Game1 : Game
             }
         }
     }
+    private void UpdateAnimations(GameTime gameTime)
+    {
+        for (int i = 0; i < _gameData.Animations.Count(); i++)
+        {
+            _gameData.Animations[i].Update(gameTime);
+        }
+    }
     private void UpdateHandleObjectsToBeDrawn(GameTime gameTime)
     {
         for (int i = 0; i < _gameData.Sprites.Count(); i++)
@@ -447,12 +473,25 @@ public class Game1 : Game
             //Add logic on Camera Change
         }
     }
+    private void UpdateOffTickIntervalCleanupAnimations(GameTime gameTime)
+    {
+        //Cleanup old animations
+        for (int i = _gameData.Animations.Count() - 1; i >= 0; i--)
+        {
+            if (_gameData.Animations[i].IsAnimationComplete)
+            {
+                _gameData.Animations[i] = null;
+                _gameData.Animations.RemoveAt(i);
+            }
+        }
+    }
 
     //Draw functions
     public void DrawWorldObjects()
     {
         _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, null, null, null, null, Global.Camera.TranslationMatrix);
         DrawSprites();
+        DrawAnimations();
         DrawBorders();
         DrawDebugData();
         _spriteBatch.End();
@@ -494,6 +533,14 @@ public class Game1 : Game
             }
         }
     }
+    private void DrawAnimations()
+    {
+        foreach (AnimationBase a in _gameData.Animations)
+        {
+            if(!a.IsAnimationComplete)
+                a.Draw(_spriteBatch);
+        }
+    }
     private void DrawBorders()
     {
         _spriteBatch.Draw(_borders.Texture, new Rectangle((int)_borders.LeftWall.X - BORDER_WIDTH, (int)_borders.LeftWall.Y, BORDER_WIDTH, _gameData.Settings.WorldSize + BORDER_WIDTH), Color.SaddleBrown);
@@ -512,11 +559,11 @@ public class Game1 : Game
             //Draw Map Grid
             for (int i = 0; i < _gameData.MapGridData.GetLength(0); i++)
             {
-                _spriteBatch.Draw(_whitePixel, new Rectangle(i * GRID_CELL_SIZE, 0, 1, _gameData.Settings.WorldSize), Color.Red);
+                _spriteBatch.Draw(_gameData.Textures.WhitePixel, new Rectangle(i * GRID_CELL_SIZE, 0, 1, _gameData.Settings.WorldSize), Color.Red);
             }
             for (int i = 0; i < _gameData.MapGridData.GetLength(1); i++)
             {
-                _spriteBatch.Draw(_whitePixel, new Rectangle(0, i * GRID_CELL_SIZE, _gameData.Settings.WorldSize, 1), Color.Red);
+                _spriteBatch.Draw(_gameData.Textures.WhitePixel, new Rectangle(0, i * GRID_CELL_SIZE, _gameData.Settings.WorldSize, 1), Color.Red);
             }
         }
     }
@@ -561,7 +608,7 @@ public class Game1 : Game
         sprite.GetGridPositionsForSpriteBase(GRID_CELL_SIZE, _gameData);
 
         //Debug Properties
-        sprite.WhiteTexture = _whitePixel; //Used to create debug information
+        sprite.WhiteTexture = _gameData.Textures.WhitePixel; //Used to create debug information
         sprite.DebugFont = _diagFont;
 
         _gameData.Sprites.Add(sprite);
@@ -584,7 +631,7 @@ public class Game1 : Game
         sprite.GetGridPositionsForSpriteBase(GRID_CELL_SIZE, _gameData);
 
         //Debug Properties
-        sprite.WhiteTexture = _whitePixel; //Used to create debug information
+        sprite.WhiteTexture = _gameData.Textures.WhitePixel; //Used to create debug information
         sprite.DebugFont = _diagFont;
 
         _gameData.Sprites.Add(sprite);
@@ -595,7 +642,7 @@ public class Game1 : Game
         SpriteBase sprite;
 
         sprite = new Truck();
-        sprite.Scale = 1f;
+        sprite.Scale = 2.5f;
         sprite.Color = Color.Blue;
         sprite.ScreenDepth = 1f; //Only used when you specify FrontToBack or BackToFront on the SpriteBatch
         if (sprite.Scale < 0.5f)
@@ -604,22 +651,46 @@ public class Game1 : Game
         sprite.IsAlive = true;
         sprite.WorldSize = _gameData.Settings.WorldSize;
         sprite.Texture = BuildSampleImage(_graphics.GraphicsDevice);
-        sprite.Speed = 20f;
-        sprite.Rotation = MathHelper.ToRadians(3);
-        sprite.Position = new Vector2(100, 500);
+        sprite.Speed = 100f;
+        sprite.Rotation = MathHelper.ToRadians(90);
+        sprite.Position = new Vector2(550, 450);
         sprite.GetGridPositionsForSpriteBase(GRID_CELL_SIZE, _gameData);
 
         //Debug Properties
-        sprite.WhiteTexture = _whitePixel; //Used to create debug information
+        sprite.WhiteTexture = _gameData.Textures.WhitePixel; //Used to create debug information
         sprite.DebugFont = _diagFont;
 
         _gameData.Sprites.Add(sprite);
         _gameData.AddSpriteToGrid(sprite);
 
+        sprite = new Truck();
+        sprite.Scale = .8f;
+        sprite.Color = Color.Blue;
+        sprite.ScreenDepth = 1f; //Only used when you specify FrontToBack or BackToFront on the SpriteBatch
+        if (sprite.Scale < 0.5f)
+            sprite.Scale = 0.5f;
 
+        sprite.IsAlive = true;
+        sprite.WorldSize = _gameData.Settings.WorldSize;
+        sprite.Texture = BuildSampleImage(_graphics.GraphicsDevice);
+        sprite.Speed = 190f;
+        sprite.Rotation = MathHelper.ToRadians(90);
+        sprite.Position = new Vector2(550, 570);
+        sprite.GetGridPositionsForSpriteBase(GRID_CELL_SIZE, _gameData);
+
+        //Debug Properties
+        sprite.WhiteTexture = _gameData.Textures.WhitePixel; //Used to create debug information
+        sprite.DebugFont = _diagFont;
+
+        _gameData.Sprites.Add(sprite);
+        _gameData.AddSpriteToGrid(sprite);
+
+        //*************************
+        //Building
+        //*************************
 
         sprite = new Building();
-        sprite.Scale = 2f;
+        sprite.Scale = 3.2f;
         sprite.Color = Color.Black;
         sprite.ScreenDepth = 1f; //Only used when you specify FrontToBack or BackToFront on the SpriteBatch
         sprite.IsAlive = true;
@@ -627,11 +698,30 @@ public class Game1 : Game
         sprite.Texture = BuildSampleImageBuilding(_graphics.GraphicsDevice);
         sprite.Speed = 0f;
         sprite.Rotation = 0f;
-        sprite.Position = new Vector2(99,99);
+        sprite.Position = new Vector2(450,500);
         sprite.GetGridPositionsForSpriteBase(GRID_CELL_SIZE, _gameData);
 
         //Debug Properties
-        sprite.WhiteTexture = _whitePixel; //Used to create debug information
+        sprite.WhiteTexture = _gameData.Textures.WhitePixel; //Used to create debug information
+        sprite.DebugFont = _diagFont;
+
+        _gameData.Sprites.Add(sprite);
+        _gameData.AddSpriteToGrid(sprite);
+
+        sprite = new Building();
+        sprite.Scale = 2.8f;
+        sprite.Color = Color.Black;
+        sprite.ScreenDepth = 1f; //Only used when you specify FrontToBack or BackToFront on the SpriteBatch
+        sprite.IsAlive = true;
+        sprite.WorldSize = _gameData.Settings.WorldSize;
+        sprite.Texture = BuildSampleImageBuilding(_graphics.GraphicsDevice);
+        sprite.Speed = 0f;
+        sprite.Rotation = 0f;
+        sprite.Position = new Vector2(800, 500);
+        sprite.GetGridPositionsForSpriteBase(GRID_CELL_SIZE, _gameData);
+
+        //Debug Properties
+        sprite.WhiteTexture = _gameData.Textures.WhitePixel; //Used to create debug information
         sprite.DebugFont = _diagFont;
 
         _gameData.Sprites.Add(sprite);

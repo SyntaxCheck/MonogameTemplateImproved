@@ -135,6 +135,7 @@ public class Camera
 
         VisibleArea = ViewportWorldBoundry();
         CameraChange = true;
+        SetTranslationMatrix();
     }
 
     // Center the camera on a specific cell in the map
@@ -227,10 +228,11 @@ public class Camera
                 for (int i = 0; i < gameData.Sprites.Count; i++)
                 {
                     //If the object is not an egg help with clicking by expanding the radius
-                    if (gameData.Sprites[i].Position.X - (gameData.Sprites[i].Texture.Width / 1.5) < worldPosition.X &&
+                    if (gameData.Sprites[i].Bounds.Contains(worldPosition) ||
+                        (gameData.Sprites[i].Position.X - (gameData.Sprites[i].Texture.Width / 1.5) < worldPosition.X &&
                         gameData.Sprites[i].Position.X + (gameData.Sprites[i].Texture.Width / 1.5) > worldPosition.X &&
                         gameData.Sprites[i].Position.Y - (gameData.Sprites[i].Texture.Height / 1.5) < worldPosition.Y &&
-                        gameData.Sprites[i].Position.Y + (gameData.Sprites[i].Texture.Height / 1.5) > worldPosition.Y)
+                        gameData.Sprites[i].Position.Y + (gameData.Sprites[i].Texture.Height / 1.5) > worldPosition.Y))
                     {
                         //Set the gameData focus to follow
                         gameData.Focus = gameData.Sprites[i];

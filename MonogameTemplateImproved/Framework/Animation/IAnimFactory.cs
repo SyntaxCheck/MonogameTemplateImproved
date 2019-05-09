@@ -4,12 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-public class Player
+public interface IAnimFactory
 {
-    public Player()
-    { }
-
-    public void HandleInput(InputState inputState)
-    {
-    }
+    int NumberOfFrames { get; set; }
+    double FrameDurationMs { get; set; }
 }

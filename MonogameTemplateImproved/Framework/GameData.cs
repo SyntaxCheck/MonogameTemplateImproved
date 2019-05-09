@@ -6,9 +6,14 @@ using System.Linq;
 public class GameData
 {
     public GameSettings Settings { get; set; }
+    //public List<TextureContainer> Textures { get; set; } //Could utilize the TextureContainer as a list 
+    public TextureContainer Textures { get; set; } //Could utilize the TextureContainer as a strongly typed class to hold all textures
+    public CollisionParticleAnimationFactory CollisionAnimFactory { get; set; } //Factory to build animations
+    public OnClickAnimationFactory OnClickAnimFactory { get; set; } //Factory to build animations
     public MapStatistics MapStatistics { get; set; } //Map stats for the top bar on the HUD
     public List<SpriteBase> Sprites { get; set; } //List of sprites on the map
     public List<SpriteBase> DeadSprites{ get; set; } //Used for writing stats at the end
+    public List<AnimationBase> Animations { get; set; } //Stores active animations
     public SpriteBase Focus { get; set; } //Camera focus, the camera class will follow whatever Creature is selected here
     public int FocusIndex { get; set; } //Camera focus index, this value is used when Paging between Creatures
     public GridData[,] MapGridData { get; set; }
@@ -24,6 +29,8 @@ public class GameData
 
     public GameData()
     {
+        Animations = new List<AnimationBase>();
+        Textures = new TextureContainer();
         MapStatistics = new MapStatistics();
         Sprites = new List<SpriteBase>();
         DeadSprites = new List<SpriteBase>();
