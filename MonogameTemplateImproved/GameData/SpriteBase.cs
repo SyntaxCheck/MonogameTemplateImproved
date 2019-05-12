@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using RectangleFLib;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +11,7 @@ public abstract class SpriteBase
 {
     public abstract bool IsMovable { get; set; }
 
-    private Rectangle _bounds;
+    private RectangleF _bounds;
     private Texture2D _texture;
     private Vector2 _position;
     private List<Point> _gridPositions;
@@ -86,7 +87,7 @@ public abstract class SpriteBase
     public Vector2 AdjustedSize { get; set; }
     public Vector2 Direction { get; set; }
     public Vector2 Origin { get; set; }
-    public Rectangle Bounds
+    public RectangleF Bounds
     {
         get
         {
@@ -146,7 +147,7 @@ public abstract class SpriteBase
 
     public void CalculateBounds()
     {
-        Bounds = new Rectangle((int)(Position.X - (AdjustedSize.X / 2)), (int)(Position.Y - (AdjustedSize.Y / 2)), (int)AdjustedSize.X, (int)AdjustedSize.Y);
+        Bounds = new RectangleF((Position.X - (AdjustedSize.X / 2)), (Position.Y - (AdjustedSize.Y / 2)), AdjustedSize.X, AdjustedSize.Y);
     }
     public Vector2 CalculateGridPositionVector(int cellSize)
     {
@@ -290,10 +291,10 @@ public abstract class SpriteBase
         _spriteBatch.Draw(WhiteTexture, new Rectangle((int)upperLeftX + diagnolLength, (int)upperLeftY - borderWidth, borderWidth, diagnolLength + borderWidth * 2), Color.Red);
         _spriteBatch.Draw(WhiteTexture, new Rectangle((int)upperLeftX - borderWidth, (int)upperLeftY - borderWidth, borderWidth, diagnolLength + borderWidth * 2), Color.Red);
 
-        _spriteBatch.Draw(WhiteTexture, new Rectangle((int)upperLeftReg - borderWidth, (int)upperLeftYReg - borderWidth, Bounds.Width + borderWidth * 2, borderWidth), Color.Red);
-        _spriteBatch.Draw(WhiteTexture, new Rectangle((int)upperLeftReg - borderWidth, (int)upperLeftYReg + Bounds.Width, Bounds.Width + borderWidth * 2, borderWidth), Color.Red);
-        _spriteBatch.Draw(WhiteTexture, new Rectangle((int)upperLeftReg + Bounds.Width, (int)upperLeftYReg - borderWidth, borderWidth, Bounds.Width + borderWidth * 2), Color.Red);
-        _spriteBatch.Draw(WhiteTexture, new Rectangle((int)upperLeftReg - borderWidth, (int)upperLeftYReg - borderWidth, borderWidth, Bounds.Width + borderWidth * 2), Color.Red);
+        _spriteBatch.Draw(WhiteTexture, new Rectangle((int)upperLeftReg - borderWidth, (int)upperLeftYReg - borderWidth, (int)Bounds.Width + borderWidth * 2, borderWidth), Color.Red);
+        _spriteBatch.Draw(WhiteTexture, new Rectangle((int)upperLeftReg - borderWidth, (int)upperLeftYReg + (int)Bounds.Width, (int)Bounds.Width + borderWidth * 2, borderWidth), Color.Red);
+        _spriteBatch.Draw(WhiteTexture, new Rectangle((int)upperLeftReg + (int)Bounds.Width, (int)upperLeftYReg - borderWidth, borderWidth, (int)Bounds.Width + borderWidth * 2), Color.Red);
+        _spriteBatch.Draw(WhiteTexture, new Rectangle((int)upperLeftReg - borderWidth, (int)upperLeftYReg - borderWidth, borderWidth, (int)Bounds.Width + borderWidth * 2), Color.Red);
     }
     public void DrawDebugDataForSprite(SpriteBatch _spriteBatch, bool left)
     {
