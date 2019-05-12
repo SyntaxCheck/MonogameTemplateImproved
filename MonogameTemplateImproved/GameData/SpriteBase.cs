@@ -58,29 +58,29 @@ public abstract class SpriteBase
 
             if (Texture != null)
             {
-                _bounds.X = (int)Math.Round((_position.X - (AdjustedSize.X / 2)), 0);
-                _bounds.Y = (int)Math.Round((_position.Y - (AdjustedSize.Y / 2)), 0);
+                _bounds.X = _position.X - (_bounds.Width / 2);
+                _bounds.Y = _position.Y - (_bounds.Height / 2);
             }
 
             if (_bounds.Left < 0)
             {
                 _position.X = _bounds.Width / 2;
-                _bounds.X = (int)Math.Round((_position.X - (AdjustedSize.X / 2)), 0);
+                _bounds.X = 0;
             }
             if (_bounds.Top < 0)
             {
                 _position.Y = _bounds.Height / 2;
-                _bounds.Y = (int)Math.Round((_position.Y - (AdjustedSize.Y / 2)), 0);
+                _bounds.Y = 0;
             }
             if (_bounds.Right > WorldSize)
             {
-                _position.X = WorldSize - _bounds.Width / 2;
-                _bounds.X = (int)Math.Round((_position.X - (AdjustedSize.X / 2)), 0);
+                _position.X = WorldSize - (_bounds.Width / 2);
+                _bounds.X = WorldSize - _bounds.Width;
             }
             if (_bounds.Bottom > WorldSize)
             {
-                _position.Y = WorldSize - _bounds.Height / 2;
-                _bounds.Y = (int)Math.Round((_position.Y - (AdjustedSize.Y / 2)), 0);
+                _position.Y = WorldSize - (_bounds.Height / 2);
+                _bounds.Y = WorldSize - _bounds.Height;
             }
         }
     }
@@ -262,7 +262,7 @@ public abstract class SpriteBase
         foreach (Point p in gridPositions)
         {
             //gridPosition += p.X + "," + p.Y + " ";
-            gridPosition = String.Join(",", new String[]{ p.X.ToString(), p.Y.ToString(), " " }); //String Join for Efficiency 
+            gridPosition = String.Join(",", new String[] { p.X.ToString(), p.Y.ToString(), " " }); //String Join for Efficiency 
         }
 
         OldGridPositionsForCompare = CurrentGridPositionsForCompare;
