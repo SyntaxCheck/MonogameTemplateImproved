@@ -56,7 +56,7 @@ public class CollisionParticleAnimationFactory : IAnimFactory
             {
                 if (rec1.Top > rec2.Top)
                 {
-                    anim1.Load(SpriteSheetTextureWestTop, NumberOfFrames, FrameDurationMs, new Vector2(0, 0), rec1Scale, color);
+                    anim1.Load(SpriteSheetTextureWestTop, NumberOfFrames, 1, 0, FrameDurationMs, new Vector2(0, 0), rec1Scale, color);
 
                     float x = rec2.Left - (anim1.Bounds.Width / 2);
                     float y = rec1.Top - (anim1.Bounds.Height / 2);
@@ -67,7 +67,7 @@ public class CollisionParticleAnimationFactory : IAnimFactory
                 }
                 if (rec1.Bottom < rec2.Bottom)
                 {
-                    anim2.Load(SpriteSheetTextureWestBottom, NumberOfFrames, FrameDurationMs, new Vector2(0, 0), rec1Scale, color);
+                    anim2.Load(SpriteSheetTextureWestBottom, NumberOfFrames, 1, 0, FrameDurationMs, new Vector2(0, 0), rec1Scale, color);
 
                     float x = rec2.Left - (anim2.Bounds.Width / 2);
                     float y = rec1.Bottom + (anim2.Bounds.Height / 2);
@@ -81,7 +81,7 @@ public class CollisionParticleAnimationFactory : IAnimFactory
             {
                 if (rec1.Top > rec2.Top)
                 {
-                    anim1.Load(SpriteSheetTextureEastTop, NumberOfFrames, FrameDurationMs, new Vector2(0, 0), rec1Scale, color);
+                    anim1.Load(SpriteSheetTextureEastTop, NumberOfFrames, 1, 0, FrameDurationMs, new Vector2(0, 0), rec1Scale, color);
 
                     float x = rec2.Right + (anim1.Bounds.Width / 2);
                     float y = rec1.Top - (anim1.Bounds.Height / 2);
@@ -92,7 +92,7 @@ public class CollisionParticleAnimationFactory : IAnimFactory
                 }
                 if (rec1.Bottom < rec2.Bottom)
                 {
-                    anim2.Load(SpriteSheetTextureEastBottom, NumberOfFrames, FrameDurationMs, new Vector2(0, 0), rec1Scale, color);
+                    anim2.Load(SpriteSheetTextureEastBottom, NumberOfFrames, 1, 0, FrameDurationMs, new Vector2(0, 0), rec1Scale, color);
 
                     float x = rec2.Right + (anim2.Bounds.Width / 2);
                     float y = rec1.Bottom + (anim2.Bounds.Height / 2);
@@ -109,7 +109,7 @@ public class CollisionParticleAnimationFactory : IAnimFactory
             {
                 if (rec1.Left > rec2.Left)
                 {
-                    anim1.Load(SpriteSheetTextureNorthLeft, NumberOfFrames, FrameDurationMs, new Vector2(0, 0), rec1Scale, color);
+                    anim1.Load(SpriteSheetTextureNorthLeft, NumberOfFrames, 1, 0, FrameDurationMs, new Vector2(0, 0), rec1Scale, color);
 
                     float x = rec1.Left - (anim1.Bounds.Width / 2);
                     float y = rec2.Top - (anim1.Bounds.Height / 2);
@@ -120,7 +120,7 @@ public class CollisionParticleAnimationFactory : IAnimFactory
                 }
                 if (rec1.Right < rec2.Right)
                 {
-                    anim2.Load(SpriteSheetTextureNorthRight, NumberOfFrames, FrameDurationMs, new Vector2(0, 0), rec1Scale, color);
+                    anim2.Load(SpriteSheetTextureNorthRight, NumberOfFrames, 1, 0, FrameDurationMs, new Vector2(0, 0), rec1Scale, color);
 
                     float x = rec1.Right + (anim2.Bounds.Width / 2);
                     float y = rec2.Top - (anim2.Bounds.Height / 2);
@@ -134,7 +134,7 @@ public class CollisionParticleAnimationFactory : IAnimFactory
             {
                 if (rec1.Left > rec2.Left)
                 {
-                    anim1.Load(SpriteSheetTextureSouthLeft, NumberOfFrames, FrameDurationMs, new Vector2(0, 0), rec1Scale, color);
+                    anim1.Load(SpriteSheetTextureSouthLeft, NumberOfFrames, 1, 0, FrameDurationMs, new Vector2(0, 0), rec1Scale, color);
 
                     float x = rec1.Left - (anim1.Bounds.Width / 2);
                     float y = rec2.Bottom + (anim1.Bounds.Height / 2);
@@ -145,7 +145,7 @@ public class CollisionParticleAnimationFactory : IAnimFactory
                 }
                 if (rec1.Right < rec2.Right)
                 {
-                    anim2.Load(SpriteSheetTextureSouthRight, NumberOfFrames, FrameDurationMs, new Vector2(0, 0), rec1Scale, color);
+                    anim2.Load(SpriteSheetTextureSouthRight, NumberOfFrames, 1, 0, FrameDurationMs, new Vector2(0, 0), rec1Scale, color);
 
                     float x = rec1.Right + (anim2.Bounds.Width / 2);
                     float y = rec2.Bottom + (anim2.Bounds.Height / 2);

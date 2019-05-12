@@ -23,7 +23,7 @@ public class OnClickAnimationFactory : IAnimFactory
     {
         SpriteSheetAnimator ssa = new SpriteSheetAnimator();
 
-        ssa.Load(SpriteSheetTexture, NumberOfFrames, FrameDurationMs, new Vector2(mousePos.X, mousePos.Y), 1f, Color.Black);
+        ssa.Load(SpriteSheetTexture, NumberOfFrames, 1, 0, FrameDurationMs, new Vector2(mousePos.X, mousePos.Y), 1f, Color.Black);
 
         return ssa;
     }

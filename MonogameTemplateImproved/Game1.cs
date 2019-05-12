@@ -328,6 +328,9 @@ public class Game1 : Game
                                 {
                                     _gameData.Sprites[i].Rotation = (((float)Math.PI * 2) - _gameData.Sprites[i].Rotation);
                                     _gameData.Sprites[i].Position = new Vector2(_gameData.Sprites[i].Position.X + offset.X, _gameData.Sprites[i].Position.Y);
+                                    _gameData.Sprites[i].Scale -= 0.1f;
+                                    if (_gameData.Sprites[i].Scale < 0f)
+                                        _gameData.Sprites[i].IsAlive = false;
                                 }
                             }
                             else
@@ -339,6 +342,9 @@ public class Game1 : Game
                                 {
                                     _gameData.Sprites[i].Rotation = (((float)Math.PI) - _gameData.Sprites[i].Rotation);
                                     _gameData.Sprites[i].Position = new Vector2(_gameData.Sprites[i].Position.X, _gameData.Sprites[i].Position.Y + offset.Y);
+                                    _gameData.Sprites[i].Scale -= 0.1f;
+                                    if (_gameData.Sprites[i].Scale < 0f)
+                                        _gameData.Sprites[i].IsAlive = false;
                                 }
                             }
                         }
@@ -577,22 +583,25 @@ public class Game1 : Game
         if (randNum > 7)
         {
             sprite = new Truck();
+            sprite.Texture = BuildSampleImage(_graphics.GraphicsDevice);
             sprite.Scale = (float)(_rand.NextDouble() * 3);
-            sprite.Color = Color.Blue;
+            sprite.Color = Color.Aqua;
             sprite.ScreenDepth = 1f; //Only used when you specify FrontToBack or BackToFront on the SpriteBatch
         }
         else if (randNum > 2)
         {
             sprite = new Car();
+            sprite.Texture = BuildSampleImage(_graphics.GraphicsDevice);
             sprite.Scale = (float)(_rand.NextDouble() * 1.5);
-            sprite.Color = Color.Red;
+            sprite.Color = Color.DodgerBlue;
             sprite.ScreenDepth = 0.5f; //Only used when you specify FrontToBack or BackToFront on the SpriteBatch
         }
         else
         {
             sprite = new Car();
+            sprite.Texture = BuildSampleImage(_graphics.GraphicsDevice);
             sprite.Scale = (float)(_rand.NextDouble() * 0.9);
-            sprite.Color = Color.Green;
+            sprite.Color = Color.LightSeaGreen;
             sprite.ScreenDepth = 0.25f; //Only used when you specify FrontToBack or BackToFront on the SpriteBatch
         }
 
@@ -601,7 +610,6 @@ public class Game1 : Game
 
         sprite.IsAlive = true;
         sprite.WorldSize = _gameData.Settings.WorldSize;
-        sprite.Texture = BuildSampleImage(_graphics.GraphicsDevice);
         sprite.Speed = 150f;
         sprite.Rotation = MathHelper.ToRadians(_rand.Next(0, 360));
         sprite.Position = new Vector2(_rand.Next((int)sprite.AdjustedSize.X, _gameData.Settings.WorldSize - (int)sprite.AdjustedSize.X), _rand.Next((int)sprite.AdjustedSize.Y, _gameData.Settings.WorldSize - (int)sprite.AdjustedSize.Y));
@@ -619,12 +627,16 @@ public class Game1 : Game
         SpriteBase sprite;
 
         sprite = new Building();
+        sprite.Texture = BuildSampleImageBuilding(_graphics.GraphicsDevice);
         sprite.Scale = (float)(_rand.NextDouble() * 3);
-        sprite.Color = Color.White;
+
+        if (sprite.Scale < 0.5f)
+            sprite.Scale = 0.5f;
+
+        sprite.Color = Color.Peru;
         sprite.ScreenDepth = 1f; //Only used when you specify FrontToBack or BackToFront on the SpriteBatch
         sprite.IsAlive = true;
         sprite.WorldSize = _gameData.Settings.WorldSize;
-        sprite.Texture = BuildSampleImageBuilding(_graphics.GraphicsDevice);
         sprite.Speed = 0f;
         sprite.Rotation = 0;
         sprite.Position = new Vector2(_rand.Next((int)sprite.AdjustedSize.X, _gameData.Settings.WorldSize - (int)sprite.AdjustedSize.X), _rand.Next((int)sprite.AdjustedSize.Y, _gameData.Settings.WorldSize - (int)sprite.AdjustedSize.Y));
@@ -643,7 +655,7 @@ public class Game1 : Game
 
         sprite = new Truck();
         sprite.Scale = 2.5f;
-        sprite.Color = Color.Blue;
+        sprite.Color = Color.Aqua;
         sprite.ScreenDepth = 1f; //Only used when you specify FrontToBack or BackToFront on the SpriteBatch
         if (sprite.Scale < 0.5f)
             sprite.Scale = 0.5f;
@@ -665,7 +677,7 @@ public class Game1 : Game
 
         sprite = new Truck();
         sprite.Scale = .8f;
-        sprite.Color = Color.Blue;
+        sprite.Color = Color.Gold;
         sprite.ScreenDepth = 1f; //Only used when you specify FrontToBack or BackToFront on the SpriteBatch
         if (sprite.Scale < 0.5f)
             sprite.Scale = 0.5f;

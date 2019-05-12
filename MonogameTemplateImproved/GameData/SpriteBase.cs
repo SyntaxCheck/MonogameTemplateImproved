@@ -120,6 +120,8 @@ public abstract class SpriteBase
         set
         {
             _scale = value;
+            AdjustedSize = new Vector2(_texture.Width * _scale, _texture.Height * _scale);
+            TextureCollideDistance = (int)Math.Ceiling(Math.Sqrt(AdjustedSize.X * AdjustedSize.X + AdjustedSize.Y * AdjustedSize.Y));
             CalculateBounds();
         }
     }

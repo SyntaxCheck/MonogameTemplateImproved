@@ -235,6 +235,7 @@ public class Camera
                         gameData.Sprites[i].Position.Y + (gameData.Sprites[i].Texture.Height / 1.5) > worldPosition.Y))
                     {
                         //Set the gameData focus to follow
+                        gameData.Sprites[i].Scale += 0.1f;
                         gameData.Focus = gameData.Sprites[i];
                         gameData.FocusIndex = i;
                         found = true;

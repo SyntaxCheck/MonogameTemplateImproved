@@ -39,6 +39,6 @@ public class SettingsHelper
     }
     public static void SetDefaultWorld(ref GameSettings settingsIn)
     {
-        settingsIn.WorldSize = 5000;
+        settingsIn.WorldSize = 10000;
     }
 }
