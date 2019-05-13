@@ -232,28 +232,20 @@ public abstract class SpriteBase
 
         return delta;
     }
-    public void GetGridPositionsForSpriteBase(int gridCellSize, GameData _gameData)
+    public void GetGridPositionsForSpriteBase(GameData _gameData)
     {
         List<Point> gridPositions = new List<Point>();
 
-        //Find the exact grid position we are in then check the surrounding grid locations
-        Point exactGridPos = CalculateGridPosition(gridCellSize);
+        //Find the top left grid position and the bottom right grid position
+        Point topLeft = new Point((int)Math.Floor(Bounds.X / _gameData.Settings.GridCellSize), (int)Math.Floor(Bounds.Y / _gameData.Settings.GridCellSize));
+        Point bottomRight = new Point((int)Math.Floor((Bounds.X + Bounds.Width) / _gameData.Settings.GridCellSize), (int)Math.Floor((Bounds.Y + Bounds.Height) / _gameData.Settings.GridCellSize));
 
-        //TODO Rework the math, we dont always need to add 2 to the search list
-        int checkRadius = ((int)Math.Ceiling(Math.Max(Bounds.Width, Bounds.Height) / (double)gridCellSize) + 2);
-
-        Point startPos = new Point(exactGridPos.X - (checkRadius / 2), exactGridPos.Y - (checkRadius / 2));
-        for (int y = startPos.Y; y < (startPos.Y + checkRadius); y++)
+        for(int y = topLeft.Y; y <= bottomRight.Y; y++)
         {
-            for (int x = startPos.X; x < (startPos.X + checkRadius); x++)
+            for(int x = topLeft.X; x <= bottomRight.X; x++)
             {
-                if (x >= 0 && x < _gameData.MapGridData.GetLength(0) && y >= 0 && y < _gameData.MapGridData.GetLength(1))
-                {
-                    if (Bounds.Intersects(_gameData.MapGridData[x, y].CellRectangle))
-                    {
-                        gridPositions.Add(new Point(x, y));
-                    }
-                }
+                if(x >= 0 && x < _gameData.MapGridData.GetLength(0) && y >= 0 && y < _gameData.MapGridData.GetLength(1))
+                    gridPositions.Add(new Point(x, y));
             }
         }
 
@@ -271,13 +263,36 @@ public abstract class SpriteBase
         GridPositions = gridPositions;
     }
 
-    public virtual void Update(GameTime gameTime)
+    public virtual void Update(GameTime gameTime, ref GameData _gameData)
     {
-        Position += Direction * (Speed * (float)gameTime.ElapsedGameTime.TotalSeconds);
+        if (IsAlive && IsMovable)
+        {
+            Position += Direction * (Speed * (float)gameTime.ElapsedGameTime.TotalSeconds);
+
+            GetGridPositionsForSpriteBase(_gameData);
+
+            if (CurrentGridPositionsForCompare != OldGridPositionsForCompare)
+            {
+                //Remove delta
+                List<Point> delta = GetGridDelta();
+                if (delta.Count > 0)
+                {
+                    _gameData.RemoveSpriteFromGrid(this, delta);
+                }
+
+                //Add delta
+                delta = GetGridDeltaAdd();
+                if (delta.Count > 0)
+                {
+                    _gameData.AddSpriteDeltaToGrid(this, delta);
+                }
+            }
+        }
     }
     public virtual void Draw(SpriteBatch _spriteBatch)
     {
-        _spriteBatch.Draw(Texture, Position, null, Color, Rotation, Origin, Scale, SpriteEffects.None, ScreenDepth);
+        if(IsAlive && DrawObject)
+            _spriteBatch.Draw(Texture, Position, null, Color, Rotation, Origin, Scale, SpriteEffects.None, ScreenDepth);
     }
     public void DrawDebugOutlineForSprite(SpriteBatch _spriteBatch)
     {

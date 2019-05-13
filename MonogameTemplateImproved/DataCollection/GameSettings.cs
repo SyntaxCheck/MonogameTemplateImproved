@@ -13,6 +13,7 @@ public class GameSettings
     public string Password { get; set; }
     //Game Settings
     public int WorldSize { get; set; }
+    public int GridCellSize { get; set; }
 
     public GameSettings()
     {

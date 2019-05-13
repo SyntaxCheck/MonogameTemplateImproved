@@ -50,10 +50,7 @@ public class Camera
     // a camera moving. We also cast to integers to avoid filtering artifacts.
     public void SetTranslationMatrix()
     {
-        MouseState mouseState = Mouse.GetState();
-
-        TranslationMatrix = Matrix.CreateTranslation(-(int)Position.X,
-            -(int)Position.Y, 0) *
+        TranslationMatrix = Matrix.CreateTranslation(-(int)Position.X, -(int)Position.Y, 0) *
             Matrix.CreateRotationZ(Rotation) *
             Matrix.CreateScale(new Vector3(Zoom, Zoom, 1)) *
             Matrix.CreateTranslation(new Vector3(ViewportCenter, 0));
@@ -119,8 +116,7 @@ public class Camera
     public Rectangle ViewportWorldBoundry()
     {
         Vector2 viewPortCorner = ScreenToWorld(new Vector2(0, 0));
-        Vector2 viewPortBottomCorner =
-           ScreenToWorld(new Vector2(ViewportWidth, ViewportHeight));
+        Vector2 viewPortBottomCorner = ScreenToWorld(new Vector2(ViewportWidth, ViewportHeight));
 
         return new Rectangle((int)viewPortCorner.X,
            (int)viewPortCorner.Y,
@@ -171,6 +167,7 @@ public class Camera
 
         Vector2 clamped = new Vector2();
         clamped = Vector2.Clamp(position, new Vector2((ViewportWidth / Zoom / 2) - clampOverrage, (ViewportHeight / Zoom / 2) - clampOverrage), cameraMax);
+
         return clamped;
     }
 
@@ -181,8 +178,7 @@ public class Camera
 
     public Vector2 ScreenToWorld(Vector2 screenPosition)
     {
-        return Vector2.Transform(screenPosition,
-            Matrix.Invert(TranslationMatrix));
+        return Vector2.Transform(screenPosition, Matrix.Invert(TranslationMatrix));
     }
 
     // Move the camera's position based on input

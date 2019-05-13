@@ -40,5 +40,6 @@ public class SettingsHelper
     public static void SetDefaultWorld(ref GameSettings settingsIn)
     {
         settingsIn.WorldSize = 10000;
+        settingsIn.GridCellSize = 50;
     }
 }

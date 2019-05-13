@@ -107,6 +107,7 @@ public class SpriteSheetAnimator : AnimationBase
     }
     public override void Draw(SpriteBatch spriteBatch)
     {
-        spriteBatch.Draw(SheetFullTexture, Position, FrameRectangle, FillColor, 0, Origin, Scale, SpriteEffects.None, 1);
+        if(!IsAnimationComplete)
+            spriteBatch.Draw(SheetFullTexture, Position, FrameRectangle, FillColor, 0, Origin, Scale, SpriteEffects.None, 1);
     }
 }

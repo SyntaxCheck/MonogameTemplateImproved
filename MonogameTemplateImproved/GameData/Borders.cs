@@ -13,6 +13,10 @@ public class Borders
     public Vector2 RightWall { get; set; }
     public Vector2 TopWall { get; set; }
     public Vector2 BottomWall { get; set; }
+    public Rectangle LeftWallRectangle { get; set;}
+    public Rectangle RightWallRectangle { get; set; }
+    public Rectangle TopWallRectangle { get; set; }
+    public Rectangle BottomWallRectangle { get; set; }
 
     public Borders()
     {
