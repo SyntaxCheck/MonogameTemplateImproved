@@ -59,6 +59,8 @@
     <Compile Include="Framework\GameData.cs" />
     <Compile Include="Framework\Global.cs" />
     <Compile Include="Framework\InputState.cs" />
+    <Compile Include="Framework\MiniMap.cs" />
+    <Compile Include="Framework\MinimapObject.cs" />
     <Compile Include="Framework\RectangleF.cs" />
     <Compile Include="Framework\Sound\SoundEffectManager.cs" />
     <Compile Include="Framework\TextureContainer.cs" />

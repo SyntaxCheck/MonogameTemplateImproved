@@ -57,10 +57,6 @@ public class Game1 : Game
     /// </summary>
     protected override void Initialize()
     {
-        Global.Camera.ViewportWidth = _graphics.GraphicsDevice.Viewport.Width;
-        Global.Camera.ViewportHeight = _graphics.GraphicsDevice.Viewport.Height;
-        Global.Camera.CenterOn(new Vector2(Global.Camera.ViewportWidth / 2, Global.Camera.ViewportHeight / 2));
-
         base.Initialize();
     }
 
@@ -73,6 +69,11 @@ public class Game1 : Game
         //Load settings at the beginning
         _gameData = new GameData();
         _gameData.Settings = SettingsHelper.ReadSettings("Settings.json");
+
+        Global.Camera.ViewportWidth = _graphics.GraphicsDevice.Viewport.Width;
+        Global.Camera.ViewportHeight = _graphics.GraphicsDevice.Viewport.Height;
+        Global.Camera.CenterOn(new Vector2(Global.Camera.ViewportWidth / 2, Global.Camera.ViewportHeight / 2));
+        Global.Camera.Initialize(_gameData.Settings.WorldSize);
 
         //Init variables
         InitVariables();
@@ -100,6 +101,9 @@ public class Game1 : Game
         _gameData.Textures.ParticleCollisionSouthLeftSpriteSheet = Content.Load<Texture2D>(@"Animations\ImpactSouthLeft");
         _gameData.Textures.ParticleCollisionSouthRightSpriteSheet = Content.Load<Texture2D>(@"Animations\ImpactSouthRight");
         _gameData.Textures.ClickExplosionSpriteSheet = Content.Load<Texture2D>(@"Animations\ClickExplosion1");
+        _gameData.Textures.MiniMapFrame = Content.Load<Texture2D>(@"Minimap\MinimapFrame");
+        _gameData.Textures.MiniMapBuildingTexture = Content.Load<Texture2D>(@"Minimap\MinimapBuilding");
+        _gameData.Textures.MiniMapMovingObjectTexture = Content.Load<Texture2D>(@"Minimap\MinimapMovingObject");
 
         _rand = new Random();
         _gameData.CollisionAnimFactory = new CollisionParticleAnimationFactory(_gameData.Textures.ParticleCollisionEastBottomSpriteSheet, _gameData.Textures.ParticleCollisionEastTopSpriteSheet, _gameData.Textures.ParticleCollisionWestBottomSpriteSheet, _gameData.Textures.ParticleCollisionWestTopSpriteSheet, _gameData.Textures.ParticleCollisionNorthLeftSpriteSheet, _gameData.Textures.ParticleCollisionNorthRightSpriteSheet, _gameData.Textures.ParticleCollisionSouthLeftSpriteSheet, _gameData.Textures.ParticleCollisionSouthRightSpriteSheet, 4, 40);
@@ -140,16 +144,19 @@ public class Game1 : Game
             }
         }
 
-        //SpawnScenerioTestObjs();
+        _gameData.MiniMap = new MiniMap(_gameData.Textures.WhitePixel, _gameData.Textures.MiniMapFrame, 20);
+        _gameData.MiniMap.SetPosition(_graphics.GraphicsDevice, new Vector2(_gameData.Settings.WorldSize, _gameData.Settings.WorldSize), Anchor.BottomRight, new Vector2(200, 200));
 
-        for (int i = 0; i < 500; i++)
-        {
-            SpawnTestObject();
-        }
-        for (int i = 0; i < 200; i++)
-        {
-            SpawnSampleBuilding();
-        }
+        SpawnScenerioTestObjs();
+
+        //for (int i = 0; i < 500; i++)
+        //{
+        //    SpawnTestObject();
+        //}
+        //for (int i = 0; i < 200; i++)
+        //{
+        //    SpawnSampleBuilding();
+        //}
     }
 
     /// <summary>
@@ -176,9 +183,12 @@ public class Game1 : Game
         }
         else
         {
+            bool handlingAllInputs = false;
+
             _inputState.Update();
-            _player.HandleInput(_inputState, ref _gameData);
-            Global.Camera.HandleInput(_inputState, PlayerIndex.One, gameTime, ref _gameData);
+            handlingAllInputs = _player.HandleInput(_inputState, ref _gameData);
+            if(!handlingAllInputs)
+                Global.Camera.HandleInput(_inputState, PlayerIndex.One, gameTime, ref _gameData);
 
             _elapsedSecondsSinceTick += gameTime.ElapsedGameTime.TotalSeconds;
             _elapsedTimeSinceFoodGeneration += gameTime.ElapsedGameTime.TotalSeconds;
@@ -187,20 +197,6 @@ public class Game1 : Game
                 _elapsedSecondsSinceTick = _elapsedSecondsSinceTick - _tickSeconds; //Start the next tick with the overage
                 tick = true;
             }
-
-            //for (int i = 0; i < _gameData.Sprites.Count(); i++)
-            //{
-            //    if (_gameData.Sprites[i].IsAlive)
-            //    {
-            //        if (_gameData.Sprites[i].Color == Color.Black)
-            //        {
-            //            _gameData.Sprites[i].IsAlive = false;
-            //            SpawnScenerioTestObjs();
-
-            //            break;
-            //        }
-            //    }
-            //}
 
             //During a tick do all creature processing
             if (tick)
@@ -273,6 +269,7 @@ public class Game1 : Game
         _elapsedTicksSinceIntervalProcessing++;
 
         UpdateTickSprites(gameTime);
+        UpdateTickMiniMap(gameTime);
     }
     private void UpdateOffTick(GameTime gameTime)
     {
@@ -494,6 +491,10 @@ public class Game1 : Game
             }
         }
     }
+    private void UpdateTickMiniMap(GameTime gameTime)
+    {
+        _gameData.MiniMap.UpdateMap(_gameData, Global.Camera.VisibleArea);
+    }
 
     //Draw functions
     public void DrawWorldObjects()
@@ -508,6 +509,7 @@ public class Game1 : Game
     private void DrawHUD()
     {
         _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, null, null, null, null);
+        DrawMiniMap();
         DrawFps();
         _spriteBatch.End();
     }
@@ -574,6 +576,10 @@ public class Game1 : Game
                 _spriteBatch.Draw(_gameData.Textures.WhitePixel, new Rectangle(0, i * _gameData.Settings.GridCellSize, _gameData.Settings.WorldSize, 1), Color.Red);
             }
         }
+    }
+    private void DrawMiniMap()
+    {
+        _gameData.MiniMap.Draw(_spriteBatch);
     }
 
     //Debug Test functions
@@ -657,6 +663,7 @@ public class Game1 : Game
 
         sprite = new Truck();
         sprite.Texture = BuildSampleImage(_graphics.GraphicsDevice);
+        sprite.MiniMapTexture = _gameData.Textures.MiniMapMovingObjectTexture;
         sprite.Scale = (float)(_rand.NextDouble() * 3);
         sprite.Color = Color.Aqua;
         sprite.ScreenDepth = 1f;
@@ -667,8 +674,8 @@ public class Game1 : Game
         sprite.IsAlive = true;
         sprite.WorldSize = _gameData.Settings.WorldSize;
         sprite.Speed = 150f;
-        sprite.Rotation = MathHelper.ToRadians(88);
-        sprite.Position = new Vector2(sprite.WorldSize - (sprite.Bounds.Width * 4), 500);
+        sprite.Rotation = MathHelper.ToRadians(-45);
+        sprite.Position = new Vector2(1000, 1000);
         sprite.GetGridPositionsForSpriteBase(_gameData);
 
         //Debug Properties

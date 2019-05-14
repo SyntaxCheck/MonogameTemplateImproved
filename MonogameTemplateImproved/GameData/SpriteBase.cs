@@ -98,6 +98,9 @@ public abstract class SpriteBase
             _bounds = value;
         }
     }
+    public Texture2D MiniMapTexture { get; set; }
+    public float MiniMapScale { get; set; }
+    public float MiniMapOpacity { get; set; }
     public int WorldSize { get; set; }
     public int TextureCollideDistance { get; set; }
     public string CurrentGridPositionsForCompare { get; set; }
@@ -129,6 +132,7 @@ public abstract class SpriteBase
     public float Speed { get; set; }
     public float ScreenDepth { get; set; }
     public Color Color { get; set; }
+    public float Opacity { get; set; }
     public bool IsAlive { get; set; }
     public bool DrawObject { get; set; } //Is the object on screen and should we draw it
     //Debug Properties
@@ -139,6 +143,9 @@ public abstract class SpriteBase
     {
         _position = Vector2.Zero;
         _scale = 1f; //Default scale to full size
+        MiniMapScale = 1f; //Default scale to full size
+        MiniMapOpacity = 1f; //Default to fully visible
+        Opacity = 1f; //Default to fully visible
         GridPositions = new List<Point>();
         OldGridPositions = new List<Point>();
         CurrentGridPositionsForCompare = String.Empty;
@@ -292,7 +299,7 @@ public abstract class SpriteBase
     public virtual void Draw(SpriteBatch _spriteBatch)
     {
         if(IsAlive && DrawObject)
-            _spriteBatch.Draw(Texture, Position, null, Color, Rotation, Origin, Scale, SpriteEffects.None, ScreenDepth);
+            _spriteBatch.Draw(Texture, Position, null, Color * Opacity, Rotation, Origin, Scale, SpriteEffects.None, ScreenDepth);
     }
     public void DrawDebugOutlineForSprite(SpriteBatch _spriteBatch)
     {

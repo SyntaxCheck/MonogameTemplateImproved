@@ -12,12 +12,13 @@ public class Camera
     public Camera()
     {
         Zoom = 0.5f;
-        CameraChange = true;
-        SetTranslationMatrix();
+
+        SetCamera();
     }
 
     // Centered Position of the Camera in pixels.
     public Vector2 Position { get; private set; }
+    public int WorldSize { get; set; }
     // Current Zoom level with 1.0f being standard
     public float Zoom { get; private set; }
     private float ZoomMin = 0.17f;
@@ -42,6 +43,24 @@ public class Camera
         {
             return new Vector2(ViewportWidth * 0.5f, ViewportHeight * 0.5f);
         }
+    }
+
+    //Set the world size and run the SetCamera
+    public void Initialize(int worldSize)
+    {
+        WorldSize = worldSize;
+
+        Position = MapClampedPosition(worldSize, Position);
+
+        SetCamera();
+    }
+
+    //Calculate VisibleArea and build the Translation Matrix
+    public void SetCamera()
+    {
+        SetTranslationMatrix();
+        VisibleArea = ViewportWorldBoundry();
+        CameraChange = true;
     }
 
     // Create a matrix for the camera to offset everything we draw,
@@ -87,9 +106,9 @@ public class Camera
             Zoom = ZoomMax;
         }
 
-        VisibleArea = ViewportWorldBoundry();
-        CameraChange = true;
-        SetTranslationMatrix();
+        Position = MapClampedPosition(WorldSize, Position);
+
+        SetCamera();
     }
 
     // Move the camera in an X and Y amount based on the cameraMovement param.
@@ -108,9 +127,7 @@ public class Camera
             Position = newPosition;
         }
 
-        VisibleArea = ViewportWorldBoundry();
-        CameraChange = true;
-        SetTranslationMatrix();
+        SetCamera();
     }
 
     public Rectangle ViewportWorldBoundry()
@@ -127,33 +144,10 @@ public class Camera
     // Center the camera on specific pixel coordinates
     public void CenterOn(Vector2 position)
     {
-        Position = position;
+        Position = MapClampedPosition(WorldSize, position);
 
-        VisibleArea = ViewportWorldBoundry();
-        CameraChange = true;
-        SetTranslationMatrix();
+        SetCamera();
     }
-
-    // Center the camera on a specific cell in the map
-    //public void CenterOn(Cell cell)
-    //{
-    //    Position = CenteredPosition(cell, true);
-    //}
-
-    //private Vector2 CenteredPosition(Cell cell, bool clampToMap = false)
-    //{
-    //    var cameraPosition = new Vector2(cell.X * Global.SpriteWidth,
-    //       cell.Y * Global.SpriteHeight);
-    //    var cameraCenteredOnTilePosition =
-    //       new Vector2(cameraPosition.X + Global.SpriteWidth / 2,
-    //           cameraPosition.Y + Global.SpriteHeight / 2);
-    //    if (clampToMap)
-    //    {
-    //        return MapClampedPosition(cameraCenteredOnTilePosition);
-    //    }
-
-    //    return cameraCenteredOnTilePosition;
-    //}
 
     // Clamp the camera so it never leaves the visible area of the map.
     private Vector2 MapClampedPosition(int worldSize, Vector2 position)
@@ -225,10 +219,10 @@ public class Camera
                 {
                     //If the object is not an egg help with clicking by expanding the radius
                     if (gameData.Sprites[i].Bounds.Contains(worldPosition) ||
-                        (gameData.Sprites[i].Position.X - (gameData.Sprites[i].Texture.Width / 1.5) < worldPosition.X &&
-                        gameData.Sprites[i].Position.X + (gameData.Sprites[i].Texture.Width / 1.5) > worldPosition.X &&
-                        gameData.Sprites[i].Position.Y - (gameData.Sprites[i].Texture.Height / 1.5) < worldPosition.Y &&
-                        gameData.Sprites[i].Position.Y + (gameData.Sprites[i].Texture.Height / 1.5) > worldPosition.Y))
+                        (gameData.Sprites[i].Position.X - (gameData.Sprites[i].Bounds.Width / 1.5) < worldPosition.X &&
+                        gameData.Sprites[i].Position.X + (gameData.Sprites[i].Bounds.Width / 1.5) > worldPosition.X &&
+                        gameData.Sprites[i].Position.Y - (gameData.Sprites[i].Bounds.Height / 1.5) < worldPosition.Y &&
+                        gameData.Sprites[i].Position.Y + (gameData.Sprites[i].Bounds.Height / 1.5) > worldPosition.Y))
                     {
                         //Set the gameData focus to follow
                         gameData.Sprites[i].Scale += 0.1f;
